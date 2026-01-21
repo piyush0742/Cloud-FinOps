@@ -3,24 +3,30 @@ import requests
 import sys
 
 # ========================
-# CONFIG (EDIT THIS)
+# CONFIG
 # ========================
 
-NAMESPACE = "auth-ns"          # change if needed
-POD_NAME = "order-service"     # partial name is OK
-CONTAINER_NAME = None          # set to "order-service" if multi-container pod
+NAMESPACE = "auth-ns"
+
+SERVICES = [
+    "order-service",
+    "payment-service",
+    "auth-service"
+]
+
+CONTAINER_NAME = None  # set if needed
 AI_API_URL = "http://127.0.0.1:8000/summarize"
 
 TAIL_LINES = "50"
-SINCE_TIME = "05m"
+SINCE_TIME = "5m"
 
 # ========================
 # HELPERS
 # ========================
 
-def get_pod_name():
+def get_pod_name(service):
     """
-    Finds the full pod name using partial match
+    Find pod for a given service
     """
     cmd = [
         "kubectl", "get", "pods",
@@ -31,21 +37,19 @@ def get_pod_name():
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        print("❌ Failed to get pods")
-        print(result.stderr)
-        sys.exit(1)
+        print(f"❌ Failed to get pods for {service}")
+        return None
 
     for line in result.stdout.splitlines():
-        if POD_NAME in line:
+        if service in line:
             return line.split()[0]
 
-    print(f"❌ Pod containing '{POD_NAME}' not found")
-    sys.exit(1)
+    return None
 
 
 def get_logs(pod):
     """
-    Fetch logs from Kubernetes
+    Fetch logs from pod
     """
     cmd = [
         "kubectl", "logs", pod,
@@ -60,54 +64,68 @@ def get_logs(pod):
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        print("❌ Failed to fetch logs")
-        print(result.stderr)
-        sys.exit(1)
+        print(f"❌ Failed to fetch logs for pod {pod}")
+        return None
 
     if not result.stdout.strip():
-        print("⚠️ No logs found")
-        sys.exit(0)
+        return None
 
     return result.stdout
 
 
-def send_to_ai(logs):
+def send_to_ai(service, logs):
     """
-    Send logs to local AI (FastAPI + LLaMA)
+    Send logs to AI
     """
     response = requests.post(
         AI_API_URL,
-        json={"logs": logs},
+        json={
+            "service": service,
+            "logs": logs
+        },
         timeout=30
     )
 
     if response.status_code != 200:
-        print("❌ AI service error")
+        print(f"❌ AI error for {service}")
         print(response.text)
-        sys.exit(1)
+        return None
 
     return response.json()
-
 
 # ========================
 # MAIN
 # ========================
 
 def main():
-    print("🔍 Finding pod...")
-    pod = get_pod_name()
-    print(f"✅ Pod found: {pod}")
+    print("\n🚀 Feeding Kubernetes logs to AI\n")
 
-    print("📥 Fetching logs...")
-    logs = get_logs(pod)
-    print("✅ Logs fetched")
+    for service in SERVICES:
+        print(f"🔍 Processing service: {service}")
 
-    print("🧠 Sending logs to AI...")
-    result = send_to_ai(logs)
+        pod = get_pod_name(service)
+        if not pod:
+            print(f"⚠️ No pod found for {service}\n")
+            continue
 
-    print("\n================ AI SUMMARY ================\n")
-    print(result.get("summary", "No summary returned"))
-    print("\n===========================================\n")
+        print(f"✅ Pod found: {pod}")
+
+        logs = get_logs(pod)
+        if not logs:
+            print(f"⚠️ No logs found for {service}\n")
+            continue
+
+        print("📥 Logs fetched, sending to AI...")
+
+        result = send_to_ai(service, logs)
+        if not result:
+            continue
+
+        print(f"\n🧠 AI Summary for {service}:")
+        print(result.get("summary", "No summary returned"))
+        print("-" * 60)
+
+    print("\n✅ Done processing all services\n")
 
 
 if __name__ == "__main__":
