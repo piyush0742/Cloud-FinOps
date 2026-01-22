@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: auth-service
+  name: order-service
   namespace: argocd
 spec:
   project: default
@@ -9,11 +9,11 @@ spec:
   source:
     repoURL: https://github.com/piyush0742/AI-assisted-DevOps.git
     targetRevision: main
-    path: Kubernetes-files/argocd-files
+    path: Kubernetes-files/order-argocd-files
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: auth-ns
+    namespace: order-ns
 
   syncPolicy:
     automated:

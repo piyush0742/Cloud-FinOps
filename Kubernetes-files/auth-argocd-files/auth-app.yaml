@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: payment-service
+  name: auth-service
   namespace: argocd
 spec:
   project: default
@@ -9,11 +9,11 @@ spec:
   source:
     repoURL: https://github.com/piyush0742/AI-assisted-DevOps.git
     targetRevision: main
-    path: Kubernetes-files/argocd-files
+    path: Kubernetes-files/auth-argocd-files
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: payment-ns
+    namespace: auth-ns
 
   syncPolicy:
     automated:
