@@ -2,7 +2,7 @@
 
 This project demonstrates a **production‑style cloud observability platform** built on **AWS EKS**, enhanced with **AI‑driven log summarization and incident explanation**. It combines **Terraform‑based infrastructure**, **microservices**, **Grafana/Prometheus monitoring**, and **local + cloud LLMs** (LLaMA 3, OpenAI, Bedrock‑ready).
 
-The goal is to keep and eye on the cost usage with granular monitoring and reduce **alert fatigue** and **mean time to understanding (MTTU)** by letting AI explain *what went wrong* in Kubernetes workloads
+The goal is to bridge the gap between Cloud Resources usage and FinOps with granular monitoring and reduce **alert fatigue** and **mean time to understanding (MTTU)** by letting AI explain *what went wrong* in Kubernetes workloads
 
 ---
 
@@ -205,4 +205,5 @@ AWS • Kubernetes • Observability • AI
 ---
 
 ⭐ If you find this useful, feel free to star the repo or reach out on LinkedIn.
+
 
