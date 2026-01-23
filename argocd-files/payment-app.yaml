@@ -9,11 +9,11 @@ spec:
   source:
     repoURL: https://github.com/piyush0742/AI-assisted-DevOps.git
     targetRevision: main
-    path: Kubernetes-files/payment-service
+    path: cloud-observability-finops/argocd-files
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: payment-ns
+    namespace: auth-ns
 
   syncPolicy:
     automated:
